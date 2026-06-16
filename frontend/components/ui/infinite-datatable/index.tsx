@@ -37,7 +37,7 @@ import { type InfiniteDataTableProps } from "./model/types.ts";
 import { InfiniteDatatableBody } from "./ui/body.tsx";
 import { InfiniteDatatableHeader } from "./ui/header.tsx";
 import { SelectionPanel } from "./ui/selection-panel.tsx";
-import { createCheckboxColumn, EMPTY_ARRAY, findScrollParent } from "./utils.tsx";
+import { createCheckboxColumn, EMPTY_ARRAY } from "./utils.tsx";
 
 export function InfiniteDataTable<TData extends RowData>({
   // Infinite scroll props
@@ -80,6 +80,7 @@ export function InfiniteDataTable<TData extends RowData>({
   hideSelectionPanel = false,
   windowScroll = false,
   aboveTableRefs,
+  scrollContainerRef,
   ...tableOptions
 }: PropsWithChildren<InfiniteDataTableProps<TData>>) {
   const selectedRowIds = state?.rowSelection ? Object.keys(state.rowSelection) : [];
@@ -218,9 +219,11 @@ export function InfiniteDataTable<TData extends RowData>({
   const [headerTop, setHeaderTop] = useState<number>(0);
 
   // In windowScroll mode the table renders at natural height and an ANCESTOR
-  // owns the scroll, so the page scrolls instead of the table. We resolve the
-  // nearest scrollable ancestor and feed the virtualizer its scrollMargin
-  // (the table's offset within that scroller) so virtualization stays intact.
+  // owns the scroll, so the page scrolls instead of the table. The consumer
+  // tells us which element scrolls via `scrollContainerRef` (no DOM-walking
+  // guesswork); we feed the virtualizer its scrollMargin (the table's offset
+  // within that scroller) so virtualization stays intact. Falls back to the
+  // document scroller (window scroll) when no ref is provided.
   const childrenRef = useRef<HTMLDivElement>(null);
   const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
@@ -228,7 +231,7 @@ export function InfiniteDataTable<TData extends RowData>({
     if (!windowScroll) return;
     const el = tableContainerRef.current;
     if (!el) return;
-    const parent = findScrollParent(el);
+    const parent = scrollContainerRef?.current ?? (document.scrollingElement as HTMLElement | null);
     setScrollParent(parent);
     if (!parent) return;
 
@@ -245,7 +248,7 @@ export function InfiniteDataTable<TData extends RowData>({
     // height changes keep scrollMargin in sync. No-op when none passed.
     aboveTableRefs?.forEach((ref) => ref.current && observer.observe(ref.current));
     return () => observer.disconnect();
-  }, [windowScroll, aboveTableRefs]);
+  }, [windowScroll, aboveTableRefs, scrollContainerRef]);
 
   const rowVirtualizer = useVirtualizer({
     count: rows.length,

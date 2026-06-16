@@ -2,7 +2,7 @@
 
 import { type Row } from "@tanstack/react-table";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { type RefObject, useCallback, useEffect, useMemo, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import AdvancedSearch from "@/components/common/advanced-search";
@@ -57,7 +57,7 @@ const getEmptyRow = ({
   );
 };
 
-function PureEventsTable() {
+function PureEventsTable({ scrollContainerRef }: { scrollContainerRef?: RefObject<HTMLElement | null> }) {
   const { toast } = useToast();
   const params = useParams<{ projectId: string }>();
 
@@ -250,6 +250,7 @@ function PureEventsTable() {
       <InfiniteDataTable<EventRow>
         className="w-full"
         windowScroll
+        scrollContainerRef={scrollContainerRef}
         aboveTableRefs={aboveTableRefs}
         columns={columns}
         data={events}
@@ -292,7 +293,7 @@ function PureEventsTable() {
   );
 }
 
-export default function EventsTable() {
+export default function EventsTable({ scrollContainerRef }: { scrollContainerRef?: RefObject<HTMLElement | null> }) {
   const signal = useSignalStoreContext((state) => state.signal);
   const params = useParams<{ projectId: string }>();
   const { columnOrder } = useMemo(() => buildEventsColumns(signal.schemaFields), [signal.schemaFields]);
@@ -303,7 +304,7 @@ export default function EventsTable() {
       defaults={{ columnOrder }}
       views={{ projectId: params.projectId, resource: `signal-events:${signal.id}` }}
     >
-      <PureEventsTable />
+      <PureEventsTable scrollContainerRef={scrollContainerRef} />
     </InfiniteDataTableProvider>
   );
 }

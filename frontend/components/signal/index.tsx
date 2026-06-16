@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import EventsTable from "@/components/signal/events-table";
 import { useSignalStoreContext } from "@/components/signal/store.tsx";
@@ -21,6 +21,8 @@ function SignalContent() {
   const { workspace } = useProjectContext();
 
   const activeTab = searchParams.get("tab") || "events";
+  // The events tab body is the scroll container for its (windowScroll) table.
+  const eventsScrollRef = useRef<HTMLDivElement>(null);
 
   const { signal } = useSignalStoreContext((state) => ({
     signal: state.signal,
@@ -79,8 +81,8 @@ function SignalContent() {
           {activeTab === "events" && <DateRangeFilter />}
         </div>
 
-        <TabsContent value="events" className="flex flex-col overflow-y-auto">
-          <EventsTable />
+        <TabsContent ref={eventsScrollRef} value="events" className="flex flex-col overflow-y-auto">
+          <EventsTable scrollContainerRef={eventsScrollRef} />
         </TabsContent>
         {!isFreeTier && (
           <TabsContent value="settings" className="flex flex-col overflow-hidden">

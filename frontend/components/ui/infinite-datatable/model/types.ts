@@ -62,6 +62,13 @@ export interface InfiniteDataTableProps<TData extends RowData> extends Omit<
    * `children` are unaffected.
    */
   aboveTableRefs?: RefObject<HTMLElement | null>[];
+  /**
+   * windowScroll only. The element that actually scrolls (e.g. the page's tab
+   * body). The virtualizer binds to it and scrollMargin is measured against it.
+   * Pass this explicitly rather than letting the table infer its scroll parent.
+   * Falls back to `document.scrollingElement` (window scroll) when omitted.
+   */
+  scrollContainerRef?: RefObject<HTMLElement | null>;
 }
 
 export interface InfiniteDataTableHeaderProps<TData extends RowData> {
