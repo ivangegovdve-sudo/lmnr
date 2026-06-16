@@ -96,7 +96,7 @@ export default function TopMovers({ className }: Props) {
   return (
     <div className={cn("flex flex-col w-full gap-2", className)}>
       <h3 className="px-1 text-sm text-secondary-foreground">
-        Top movers
+        Notable clusters
         {comparisonWindow && <span className="text-muted-foreground">{` (vs previous ${comparisonWindow})`}</span>}
       </h3>
       <div className="h-[120px] w-full">

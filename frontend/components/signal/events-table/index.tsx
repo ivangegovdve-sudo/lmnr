@@ -237,12 +237,12 @@ function PureEventsTable() {
   }, [pastHours, startDate, endDate, searchParams, pathName, router]);
 
   return (
-    <div className="flex flex-col px-4 pb-4">
+    <div className="flex flex-col px-4 pb-4 pt-2">
       {/* Clusters content lifted to a page sibling above the table.
           Time picker lives on the tabs row (signal/index.tsx); it's URL-bound so it
           still drives both the clusters fetches and the table from there. */}
       <div ref={clustersBlockRef} className="flex flex-col items-start">
-        <TopMovers className="my-6" />
+        <TopMovers className="mb-6" />
         {/* Breadcrumb sits above the cluster list + chart, below the top-movers row. */}
         {emergingClusterId ? <EmergingClusterBreadcrumbs /> : <ClusterBreadcrumbs />}
         <ClustersSection className="mt-1 mb-6" />
