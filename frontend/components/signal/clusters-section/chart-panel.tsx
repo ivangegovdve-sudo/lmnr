@@ -57,7 +57,7 @@ export default function ChartPanel({
 
   return (
     <div className="relative flex h-full flex-col">
-      <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md border bg-background p-0.5">
+      <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-lg border bg-muted p-0.5">
         {(
           [
             { type: "frequency", label: "Frequency chart", Icon: ChartColumn },
@@ -69,7 +69,7 @@ export default function ChartPanel({
             size="icon"
             variant="ghost"
             aria-label={label}
-            className={cn("size-8", chartType === type ? "bg-secondary text-foreground" : "text-muted-foreground")}
+            className={cn("size-8", chartType === type ? "bg-background text-foreground" : "text-muted-foreground")}
             onClick={() => setChartType(type)}
           >
             <Icon className="size-5" />
