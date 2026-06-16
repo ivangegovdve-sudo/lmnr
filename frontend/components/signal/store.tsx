@@ -352,6 +352,7 @@ export const createSignalStore = (initProps: EventsProps) =>
         );
         if (!res.ok) throw new Error("Failed to fetch top movers");
         const data = (await res.json()) as { items: ClusterTopMover[] };
+        if (abortSignal?.aborted) return;
         set({ topMovers: data.items, isTopMoversLoading: false });
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
