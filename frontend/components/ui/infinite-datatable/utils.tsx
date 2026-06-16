@@ -8,12 +8,16 @@ export const EMPTY_ARRAY: RowData[] = [];
 
 // Walk ancestors for the nearest vertically-scrollable element, falling back to
 // the document scrolling element. Used by the windowScroll virtualizer to bind
-// to the real page-scroll container under a fixed-shell layout.
+// to the real page-scroll container under a fixed-shell layout. Match on the
+// overflow style alone — NOT on current `scrollHeight > clientHeight` — because
+// resolution runs once on mount while content is still loading and short; a
+// scroll container that hasn't overflowed yet would otherwise be skipped, and
+// the virtualizer would bind to the document and desync once content grows.
 export function findScrollParent(el: HTMLElement): HTMLElement | null {
   let node: HTMLElement | null = el.parentElement;
   while (node) {
     const overflowY = getComputedStyle(node).overflowY;
-    if ((overflowY === "auto" || overflowY === "scroll") && node.scrollHeight > node.clientHeight) {
+    if (overflowY === "auto" || overflowY === "scroll") {
       return node;
     }
     node = node.parentElement;
