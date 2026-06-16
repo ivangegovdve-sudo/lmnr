@@ -6,54 +6,46 @@ import Link from "next/link";
 
 import SignalSparkline from "@/components/signals/signal-sparkline.tsx";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { type SignalRow } from "@/lib/actions/signals";
 import { type SignalSparklineData } from "@/lib/actions/signals/stats";
 import { track } from "@/lib/posthog";
 import { formatRelativeTime, formatShortDate } from "@/lib/utils.ts";
 
+import SignalCardMenu from "./signal-card-menu";
+
 export default function SignalCard({
   signal,
   projectId,
   sparklineData,
   sparklineMaxCount,
-  isSelected,
-  onToggleSelect,
+  onDelete,
 }: {
   signal: SignalRow;
   projectId: string;
   sparklineData: SignalSparklineData;
   sparklineMaxCount?: number;
-  isSelected: boolean;
-  onToggleSelect: () => void;
+  onDelete: () => Promise<boolean>;
 }) {
   const data = sparklineData[signal.id];
   const isSparklineLoading = isNil(data);
   const signalUrl = `/project/${projectId}/signals/${signal.id}`;
 
+  // The <Link> wraps the navigable content only; the menu is an absolutely-
+  // positioned sibling (NOT inside the anchor) so it stays interactive without
+  // nesting a <button> in an <a>. Header reserves right padding for the menu.
   return (
-    <Link
-      href={signalUrl}
-      className="block h-full"
-      onClick={() => track("signals", "events_viewed", { event_count: signal.eventsCount })}
-    >
-      <Card className="hover:border-primary/40 transition-colors h-full">
+    <Card className="relative hover:border-primary/40 transition-colors h-full">
+      <div className="absolute right-2 top-2.5 z-10">
+        <SignalCardMenu signalId={signal.id} signalName={signal.name} projectId={projectId} onDelete={onDelete} />
+      </div>
+      <Link
+        href={signalUrl}
+        className="block h-full"
+        onClick={() => track("signals", "events_viewed", { event_count: signal.eventsCount })}
+      >
         <CardHeader className="px-3 pt-3 pb-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onToggleSelect();
-                }}
-              >
-                <Checkbox checked={isSelected} aria-label={`Select ${signal.name}`} />
-              </div>
-              <h3 className="font-medium text-sm truncate">{signal.name}</h3>
-            </div>
-          </div>
+          <h3 className="font-medium text-sm truncate pr-8">{signal.name}</h3>
         </CardHeader>
         <CardContent className="px-3 pt-0 pb-2 space-y-2">
           <TooltipProvider delayDuration={300}>
@@ -98,7 +90,7 @@ export default function SignalCard({
         <CardFooter className="px-3 pb-3 pt-0 flex items-center justify-between text-[10px] text-muted-foreground">
           <div title={signal.createdAt}>Created {formatShortDate(signal.createdAt)}</div>
         </CardFooter>
-      </Card>
-    </Link>
+      </Link>
+    </Card>
   );
 }

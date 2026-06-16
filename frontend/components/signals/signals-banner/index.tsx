@@ -46,17 +46,12 @@ export default function SignalsBanner({ onCreateSignal }: SignalsBannerProps) {
         >
           <div className="rounded-xl border bg-secondary overflow-hidden">
             {/* Top section */}
-            <div className="flex justify-between pl-6 pr-4 pt-4 pb-4">
-              <div className="flex flex-col gap-2">
-                <p className="text-xl font-medium leading-6 text-foreground">
+            <div className="flex justify-between pl-6 pr-4 pt-4 pb-4 h-32">
+              <div className="flex flex-col gap-2 justify-end">
+                <p className="text-xl leading-6 text-foreground">
                   Signals answer any question,
                   <br />
                   from any trace, at scale.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Our agent extracts structured insights from your traces to help you
-                  <br />
-                  track outcomes, detect failures, and identify behavioral patterns.
                 </p>
               </div>
               <div className="flex flex-col items-end justify-between self-stretch">
@@ -86,7 +81,7 @@ export default function SignalsBanner({ onCreateSignal }: SignalsBannerProps) {
             </div>
 
             {/* Steps section */}
-            <div className="border-t flex items-start gap-8 px-6 pt-4 pb-5">
+            <div className="border-t flex items-start gap-8 px-6 pt-3 pb-4">
               {STEPS.map((step) => (
                 <div key={step.number} className="flex gap-3 items-start">
                   <div className="flex items-center justify-center size-5 rounded bg-muted border text-xs text-secondary-foreground shrink-0">

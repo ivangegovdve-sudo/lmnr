@@ -10,7 +10,6 @@ import SignalsBanner, { SignalsBannerInfoButton } from "@/components/signals/sig
 import { Button } from "@/components/ui/button";
 import DateRangeFilter, { type DateRange } from "@/components/ui/date-range-filter";
 import { type DateRangeValue } from "@/components/ui/date-range-filter/store";
-import DeleteSelectedRows from "@/components/ui/delete-selected-rows.tsx";
 import Header from "@/components/ui/header.tsx";
 import { useInfiniteScroll } from "@/components/ui/infinite-datatable/hooks";
 import { InfiniteDataTableProvider } from "@/components/ui/infinite-datatable/model/table-store";
@@ -46,7 +45,6 @@ function SignalsContent() {
     track("signals", "page_viewed");
   }, []);
 
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [sparklineData, setSparklineData] = useState<SignalSparklineData>({});
   const [dateRange, setDateRange] = useState<DateRangeValue>({ pastHours: "168" });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -151,35 +149,33 @@ function SignalsContent() {
     await refetch();
   }, [refetch]);
 
+  // Single-signal delete via the BULK endpoint with one id — deleteSignals()
+  // purges the signal's ClickHouse events; the per-id deleteSignal() route does NOT.
   const handleDelete = useCallback(
-    async (selectedRowIds: string[]) => {
+    async (id: string): Promise<boolean> => {
       try {
         const res = await fetch(`/api/projects/${projectId}/signals`, {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ids: selectedRowIds }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: [id] }),
         });
-
         if (!res.ok) {
-          throw new Error("Failed to delete signals");
+          const message = await res
+            .json()
+            .then((d) => d?.error)
+            .catch(() => null);
+          throw new Error(message ?? "Failed to delete signal");
         }
-
-        updateData((currentData) => currentData.filter((s) => !selectedRowIds.includes(s.id)));
-        setRowSelection({});
+        updateData((currentData) => currentData.filter((s) => s.id !== id));
         track("signals", "deleted");
-
-        toast({
-          title: "Signals deleted",
-          description: `Successfully deleted ${selectedRowIds.length} signal(s).`,
-        });
+        toast({ title: "Signal deleted" });
+        return true;
       } catch (error) {
         toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to delete signals. Please try again.",
+          title: error instanceof Error ? error.message : "Failed to delete signal. Please try again.",
           variant: "destructive",
         });
+        return false;
       }
     },
     [projectId, toast, updateData]
@@ -194,8 +190,6 @@ function SignalsContent() {
     }
     return max;
   }, [sparklineData]);
-
-  const selectedRowIds = useMemo(() => Object.keys(rowSelection).filter((id) => rowSelection[id]), [rowSelection]);
 
   // Infinite scroll via scroll container
   useEffect(() => {
@@ -235,13 +229,6 @@ function SignalsContent() {
               Signal
             </Button>
           </CreateSignalDrawer>
-          <div className="flex-1" />
-          {selectedRowIds.length > 0 && (
-            <>
-              <span className="text-sm text-muted-foreground">{selectedRowIds.length} selected</span>
-              <DeleteSelectedRows selectedRowIds={selectedRowIds} onDelete={handleDelete} entityName="signals" />
-            </>
-          )}
         </div>
 
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
@@ -275,8 +262,7 @@ function SignalsContent() {
                 projectId={projectId as string}
                 sparklineData={sparklineData}
                 sparklineMaxCount={sparklineMaxCount}
-                selectedIds={rowSelection}
-                onSelectionChange={setRowSelection}
+                onDelete={handleDelete}
               />
               {isFetching && (
                 <div className="flex justify-center py-4">
